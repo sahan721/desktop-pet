@@ -22,15 +22,18 @@ import { useAchievements } from "../hooks/useAchievements";
 import AchievementPopup from "./AchievementPopup";
 import { useGitActivity } from "../hooks/useGitActivity";
 
+import { useRef } from "react";
+
 const Pet = () => {
   const { state } = usePetState();
   const position = usePetMovement(state);
-  const stats = usePetStats();
+  const { stats, setStats } = usePetStats();
   const level = calculateLevel(stats.xp);
   const achievements = useAchievements(level);
   const [showAchievement, setShowAchievement] =
   useState(false);
   const commitCount = useGitActivity();
+  const previousCommitCount = useRef(commitCount);
 
   const currentAnimation =
     state === "walking"
@@ -40,6 +43,24 @@ const Pet = () => {
       : idleAnimation;
 
   const [message, setMessage] = useState(PET_MESSAGES[0]);
+
+  useEffect(() => {
+  if (commitCount > previousCommitCount.current) {
+    const newCommits =
+      commitCount - previousCommitCount.current;
+
+    setStats((prev) => ({
+      ...prev,
+      xp: prev.xp + newCommits * 10,
+      happiness: Math.min(
+        prev.happiness + newCommits * 5,
+        100
+      ),
+    }));
+  }
+
+  previousCommitCount.current = commitCount;
+}, [commitCount, setStats]);
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -57,6 +78,7 @@ const Pet = () => {
   const unlocked = achievements.some(
     (a) => a.unlocked
   );
+
 
   if (unlocked) {
     setShowAchievement(true);

@@ -35,5 +35,8 @@ export const usePetStats = () => {
   saveStats(stats);
 }, [stats]);
 
-  return stats;
+  return {
+  stats,
+  setStats,
+};
 };
